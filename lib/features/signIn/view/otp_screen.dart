@@ -229,10 +229,9 @@ class _OtpScreenState extends State<OtpScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>  SuccessScreen(status: state.otpModel.status!),
+                builder: (_) =>  SuccessScreen.getRouteInstance(state.otpModel.status!),
               ),
             );
-
           }
         } else if(state is OtpFailure){
           AppSnackBar.showError(context, state.message);

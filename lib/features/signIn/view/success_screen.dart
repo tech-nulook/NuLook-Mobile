@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:nulook_app/common/common_button.dart';
 import 'package:nulook_app/core/constant/constant_data.dart';
 
+import '../../../Features/about/bloc/signup_cubit.dart';
 import '../../../Features/about/view/about_main_screen.dart';
 import '../../../Features/home/view/advanced_drawer.dart';
 import '../../../core/routers/app_router_constant.dart';
@@ -13,8 +15,13 @@ import '../../about/view/dynamic_question_screen.dart';
 
 class SuccessScreen extends StatefulWidget {
   final String status;
-
   const SuccessScreen({super.key, required this.status});
+
+  static Widget getRouteInstance(String status) => MultiBlocProvider(
+    providers: [BlocProvider(create: (context) => SignupCubit())],
+    child: SuccessScreen(status: status),
+  );
+
 
   @override
   State<SuccessScreen> createState() => _SuccessScreenState();
@@ -33,6 +40,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
     //     );
     //   }
     // });
+    context.read<SignupCubit>().getCustomerDetails(context);
     super.initState();
   }
 

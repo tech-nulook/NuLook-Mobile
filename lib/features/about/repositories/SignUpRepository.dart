@@ -7,6 +7,7 @@ import '../../../core/network/api_end_points.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/network/api_services.dart';
+import '../model/customer_details.dart';
 import '../model/question.dart';
 import '../model/signup.dart';
 
@@ -90,6 +91,33 @@ class SignupRepository {
     } catch (e) {
       return ApiResponse.failure(
         ApiError(message: 'Unexpected error: $e'),
+        statusCode: 0,
+      );
+    }
+  }
+
+  Future<ApiResponse<CustomerDetails>> customerDetailsRepository() async {
+    try {
+      final response = await ApiServices().get(ApiEndPoints.getCustomerDetails());
+      if (response.isSuccess && response.data != null) {
+        final customerDetails = CustomerDetails.fromJson(response.data);
+        debugPrint('✅ Customer Details fetched: ${customerDetails.customer!.name}, Email: ${customerDetails.customer!.email}');
+        return ApiResponse.success(customerDetails, statusCode: response.statusCode);
+      } else {
+        return ApiResponse.failure(
+          ApiError(message: response.error?.message ?? ' failed' ,details: response.error?.details),
+          statusCode: response.statusCode,
+        );
+      }
+    } on ApiException catch (e) {
+      return ApiResponse.failure(
+        ApiError(message: e.errorMessage, details: "$e"),
+        statusCode: e.errorCode,
+      );
+    } catch (e) {
+      // Fallback for unknown errors
+      return ApiResponse.failure(
+        ApiError(message: 'Unexpected error occurred: $e'),
         statusCode: 0,
       );
     }

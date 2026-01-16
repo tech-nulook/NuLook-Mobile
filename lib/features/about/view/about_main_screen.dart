@@ -66,6 +66,7 @@ class _AboutMainScreenState extends State<AboutMainScreen> {
 
   @override
   void initState() {
+
     final storedPhone = SharedPreferencesHelper.instance.getString(SecureConstant.phoneNumber);
 
     debugPrint("✅ Phone number from prefs: $storedPhone");

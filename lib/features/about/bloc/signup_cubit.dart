@@ -4,8 +4,11 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../common/bloc/user_pref_cubit.dart';
 import '../../../core/storage/secure_storage_constant.dart';
 import '../../../core/storage/shared_preferences_helper.dart';
+import '../model/customer_details.dart';
 import '../model/question.dart';
 import '../model/signup.dart';
 import '../repositories/SignUpRepository.dart';
@@ -94,4 +97,33 @@ class SignupCubit extends Cubit<SignupState> {
       debugPrint('❌ Exception: $e\n$stack');
     }
   }
+  Future<void> getCustomerDetails(BuildContext context) async {
+    emit(CustomerLoading());
+    try {
+      final result = await _signupRepository.customerDetailsRepository();
+
+      if (result.isSuccess && result.data != null && result.data != []) {
+        final CustomerDetails customerDetails  = result.data!;
+        debugPrint(' Customer Details fetched: ${customerDetails.customer!.name}, Email: ${customerDetails.customer!.email}');
+        await  context.read<UserPrefCubit>().saveUserData(
+          userName: customerDetails.customer!.name,
+          userEmail: customerDetails.customer!.email,
+          phoneNumber: customerDetails.customer!.phoneNumber,
+          userPicture: customerDetails.customer!.picture,
+          gender: customerDetails.customer!.gender,
+          location: customerDetails.customer!.location,
+        );
+        emit(CustomerLoaded(customerDetails));
+
+      } else {
+        final msg = '${result.error?.message}\n${result.error?.details}';
+        emit(CustomerError(msg));
+      }
+    } catch (e, stack) {
+      emit(CustomerError('Unexpected error: $e'));
+      debugPrint('❌ Exception: $e\n$stack');
+    }
+  }
+
+  //{status: success, customer: {id: 9, name: null, phone_number: 9861962002, email: null, gender: null, dob: null, location: null, picture: null, status: existing, user_id: 147, user_details: {id: 147, username: 9861962002, email: 9861962002, role: customer}}, message: Customer details retrieved successfully}
 }

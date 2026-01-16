@@ -98,3 +98,24 @@ class UserProfileError extends SignupState {
   @override
   List<Object> get props => [message];
 }
+
+class CustomerLoading extends SignupState {
+  @override
+  List<Object?> get props => [];
+}
+
+class CustomerLoaded extends SignupState {
+  final CustomerDetails customerDetails;
+
+  CustomerLoaded(this.customerDetails);
+  @override
+  List<Object> get props => [customerDetails];
+}
+
+class CustomerError extends SignupState {
+  final String message;
+
+  CustomerError(this.message);
+  @override
+  List<Object> get props => [message];
+}
