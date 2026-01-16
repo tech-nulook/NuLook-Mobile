@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "307354088058",
+    "project_id": "nulook-57c3a",
+    "storage_bucket": "nulook-57c3a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307354088058:android:45ec95cddd59c0daa741c3",
+        "android_client_info": {
+          "package_name": "com.affluora.nulookapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "307354088058-lhn6v5o9n47rpf6bln6esab77kfv0gpu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.affluora.nulookapp",
+            "certificate_hash": "d90f280365aac36b8c9eb8bdd79da9ebc886d6e9"
+          }
+        },
+        {
+          "client_id": "307354088058-4glbvfg72pe22gro7e7iqfn3r3p3ugbd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiYfvGvTxME5T6TndIcy0O4nkkyPGuqOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "307354088058-4glbvfg72pe22gro7e7iqfn3r3p3ugbd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "307354088058-vjqk28i0jvh69hf7ts6m5o5f37u0hnt1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.affluora.nulookapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
