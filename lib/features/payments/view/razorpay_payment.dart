@@ -20,7 +20,9 @@ class _RazorpayPaymentState extends State<RazorpayPayment> {
   // Test API Key: rzp_test_S311Wpz3K0t7oF
   // Razor pay_ Secret: tMy78KgBBwbBvFVszGlFw6pe
 
-  String merchantKeyValue = "rzp_test_S311Wpz3K0t7oF";
+  //Live API Key: rzp_live_S4c3gOywhxJXIb
+
+  String merchantKeyValue = "rzp_live_S4c3gOywhxJXIb";
   String amountValue = "100";
   String orderIdValue = "01020304";
   String mobileNumberValue = "9861962003";

@@ -97,14 +97,14 @@ class SignupCubit extends Cubit<SignupState> {
       debugPrint('❌ Exception: $e\n$stack');
     }
   }
-  Future<void> getCustomerDetails(BuildContext context) async {
+  Future<bool> getCustomerDetails(BuildContext context) async {
     emit(CustomerLoading());
     try {
       final result = await _signupRepository.customerDetailsRepository();
 
       if (result.isSuccess && result.data != null && result.data != []) {
         final CustomerDetails customerDetails  = result.data!;
-        debugPrint(' Customer Details fetched: ${customerDetails.customer!.name}, Email: ${customerDetails.customer!.email}');
+        debugPrint('✅ Customer Details fetched: ${customerDetails.customer!.name}, Email: ${customerDetails.customer!.email}');
         await  context.read<UserPrefCubit>().saveUserData(
           userName: customerDetails.customer!.name,
           userEmail: customerDetails.customer!.email,
@@ -113,17 +113,45 @@ class SignupCubit extends Cubit<SignupState> {
           gender: customerDetails.customer!.gender,
           location: customerDetails.customer!.location,
         );
-        emit(CustomerLoaded(customerDetails));
+        await SharedPreferencesHelper.instance.saveObject(SecureConstant.userName, customerDetails.customer!.name);
 
+        emit(CustomerLoaded(customerDetails));
+        return true;
       } else {
         final msg = '${result.error?.message}\n${result.error?.details}';
         emit(CustomerError(msg));
+        return false;
       }
     } catch (e, stack) {
       emit(CustomerError('Unexpected error: $e'));
       debugPrint('❌ Exception: $e\n$stack');
+      return false;
     }
   }
+
+  // Future<bool> getCustomerDetails() async {
+  //   try {
+  //     emit(SignupLoading());
+  //
+  //     final response = await repo.getCustomerDetails();
+  //
+  //     if (response.success == true) {
+  //       await SharedPreferencesHelper.instance.setObject(
+  //         SecureConstant.userProfileData,
+  //         response.data,
+  //       );
+  //
+  //       emit(SignupLoaded(response.data));
+  //       return true;
+  //     } else {
+  //       emit(SignupError(response.message ?? "Something went wrong"));
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     emit(SignupError(e.toString()));
+  //     return false;
+  //   }
+  // }
 
   //{status: success, customer: {id: 9, name: null, phone_number: 9861962002, email: null, gender: null, dob: null, location: null, picture: null, status: existing, user_id: 147, user_details: {id: 147, username: 9861962002, email: 9861962002, role: customer}}, message: Customer details retrieved successfully}
 }

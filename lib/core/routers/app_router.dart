@@ -1,6 +1,7 @@
 
 import 'package:go_router/go_router.dart';
 import 'package:nulook_app/Features/OnBoarding/view/onboarding_page.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
 import 'package:nulook_app/core/routers/app_router_constant.dart';
 import '../../Features/about/view/about_main_screen.dart';
 import '../../Features/about/view/dynamic_question_screen.dart';
@@ -15,6 +16,7 @@ import '../../features/vendors/view/salons_page.dart';
 
 
 final GoRouter appRouter = GoRouter(
+  navigatorKey: AppNavigator.navigatorKey,
   initialLocation: AppRouterConstant.splash,
   // redirect: (context, state) {
   //   final isLoggedIn = false; // read from storage / cubit
@@ -28,7 +30,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRouterConstant.splash,
       name: AppRouterConstant.splash,
-      builder: (context, state) => const SplashPage(),
+      builder: (context, state) => SplashPage.getRouteInstance()
     ),
     GoRoute(
       path: AppRouterConstant.onBoardingPage,

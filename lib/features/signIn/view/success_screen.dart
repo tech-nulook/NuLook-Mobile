@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:nulook_app/common/common_button.dart';
 import 'package:nulook_app/core/constant/constant_data.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
 
 import '../../../Features/about/bloc/signup_cubit.dart';
 import '../../../Features/about/view/about_main_screen.dart';
@@ -97,17 +98,18 @@ class _SuccessScreenState extends State<SuccessScreen> {
             CommonButton(
               title: ConstantData.continues,
               onPressed: () {
+                debugPrint("Success Screen Status: ${widget.status}");
                 if (widget.status == 'existing_customer') {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.goNamed(AppRouterConstant.advancedDrawer);
+                    AppNavigator.go(AppRouterConstant.advancedDrawer);
                   });
                 } else if (widget.status == 'new_customer') {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.goNamed(AppRouterConstant.aboutMainScreen);
+                    AppNavigator.go(AppRouterConstant.aboutMainScreen);
                   });
                 } else {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.goNamed(AppRouterConstant.aboutMainScreen);
+                    AppNavigator.go(AppRouterConstant.aboutMainScreen);
                   });
                 }
               },

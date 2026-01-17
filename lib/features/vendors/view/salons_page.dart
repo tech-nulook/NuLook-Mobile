@@ -115,9 +115,7 @@ class _SalonsPageState extends State<SalonsPage> {
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.transparent : Colors.transparent,
                   borderRadius: BorderRadius.circular(50),
-                  border: Border.all(
-                    color: isSelected ? Colors.redAccent : Colors.transparent,
-                  ),
+                  border: Border.all(color: isSelected ? Colors.redAccent : Colors.transparent),
                 ),
                 child: Center(
                   child: Text(
@@ -126,9 +124,7 @@ class _SalonsPageState extends State<SalonsPage> {
                       fontSize: 12,
                       color: isSelected ? Colors.redAccent : null,
                       fontFamily: 'Montserrat',
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

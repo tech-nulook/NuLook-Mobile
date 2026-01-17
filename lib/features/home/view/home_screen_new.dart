@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
 import 'package:nulook_app/core/routers/app_router_constant.dart';
 import 'package:nulook_app/features/home/bloc/home_cubit.dart';
 import '../../../common/bloc/user_pref_cubit.dart';
@@ -88,11 +89,77 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size(double.infinity, 170),
+        preferredSize: Size(double.infinity, 160),
         child: buildHeaderWidget(),
       ),
       //body: isLoading ? HomeShimmerScreen() : _bodySection(),
       body: _bodySection(),
+    );
+  }
+
+  Widget buildHeaderWidget() {
+    final isDark = context.watch<ThemeCubit>().state.themeMode == ThemeMode.dark;
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.fromLTRB(0, 160, 10, 0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors:
+              tabGradients[selectedTab] ?? [Colors.black, Colors.black87],
+            ),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: HomeTab.values.map((tab) {
+              final isSelected = selectedTab == tab;
+              return GestureDetector(
+                onTap: () => setState(() => selectedTab = tab),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? (isDark ? Colors.black : Colors.white)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                    ),
+                  ),
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 250),
+                    style: TextStyle(
+                      color: isSelected
+                          ? (isDark ? Colors.white : Colors.black)
+                          : Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    child: Text(
+                      tab.name[0].toUpperCase() + tab.name.substring(1),
+                      style: TextStyle(fontWeight: FontWeight.w600,fontFamily: 'Montserrat'),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        header(),
+      ],
     );
   }
 
@@ -162,77 +229,12 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget buildHeaderWidget() {
-    final isDark = context.watch<ThemeCubit>().state.themeMode == ThemeMode.dark;
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.fromLTRB(0, 170, 10, 0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors:
-                  tabGradients[selectedTab] ?? [Colors.black, Colors.black87],
-            ),
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: HomeTab.values.map((tab) {
-              final isSelected = selectedTab == tab;
-              return GestureDetector(
-                onTap: () => setState(() => selectedTab = tab),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? (isDark ? Colors.black : Colors.white)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
-                    ),
-                  ),
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 250),
-                    style: TextStyle(
-                      color: isSelected
-                          ? (isDark ? Colors.white : Colors.black)
-                          : Colors.white70,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    child: Text(
-                      tab.name[0].toUpperCase() + tab.name.substring(1),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        header(),
-      ],
-    );
-  }
-
   Widget header() {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          SizedBox(height: 50),
+          SizedBox(height: 30),
           BlocBuilder<UserPrefCubit, UserPrefState>(
             builder: (context, state) {
               return Row(
@@ -283,18 +285,11 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       GlassIconButton(
                         icon: Icons.search,
-                        isDecoration: true,
+                        isDecoration: false,
                         showDot: false,
                         themeMode: false,
                         onTap: () {
-                          context.pushNamed(AppRouterConstant.salonsPage);
-                          // Navigator.of(context).push(
-                          //   MaterialPageRoute(
-                          //     builder: (context) {
-                          //       return SalonsPage.getRouteInstance();
-                          //     },
-                          //   ),
-                          // );
+                          AppNavigator.pushNamed(AppRouterConstant.salonsPage);
                         },
                       ),
                       const SizedBox(width: 12),
@@ -303,11 +298,11 @@ class _HomeScreenState extends State<HomeScreen>
                       // }),
                       GlassIconButton(
                         icon: Icons.notifications_none,
-                        isDecoration: true,
+                        isDecoration: false,
                         showDot: false,
                         themeMode: false,
                         onTap: () {
-                          context.push(AppRouterConstant.notifications);
+                          AppNavigator.push(AppRouterConstant.notifications);
                         },
                       ),
                     ],
@@ -318,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen>
               );
             },
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 20),
           Row(
             children: [
               Text(
@@ -348,6 +343,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
+          SizedBox(height: 20),
         ],
       ),
     );
@@ -747,6 +743,9 @@ class _HomeScreenState extends State<HomeScreen>
               title: state.feelings[index].name ?? 'Title',
               subtitle: state.feelings[index].description ?? 'Subtitle',
               imageUrl: state.feelings[index].image ?? '',
+              onTap: () {
+                AppNavigator.pushNamed(AppRouterConstant.salonsPage);
+              },
             );
           },
         ),

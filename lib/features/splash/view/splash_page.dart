@@ -1,20 +1,20 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:nulook_app/Features/signIn/view/signin_page.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
 import 'package:nulook_app/core/routers/app_router_constant.dart';
-import '../../../Features/OnBoarding/view/onboarding_page.dart';
 import '../../../Features/about/bloc/signup_cubit.dart';
-import '../../../Features/about/view/about_main_screen.dart';
-import '../../../core/storage/shared_preferences_helper.dart';
-import '../../home/view/advanced_drawer.dart';
 import '../../../core/constant/constant_assets.dart';
+import '../../../core/storage/shared_preferences_helper.dart';
 import '../../../core/storage/secure_storage_constant.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
+  static Widget getRouteInstance() => MultiBlocProvider(
+    providers: [BlocProvider(create: (context) => SignupCubit())],
+    child: const SplashPage(),
+  );
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -24,13 +24,14 @@ class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  late String? userId = '';
-  late bool? isSignUp = false;
+
+  String? userId;
+  String? userName;
 
   @override
   void initState() {
     super.initState();
-    // Fade-in animation
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -39,31 +40,44 @@ class _SplashPageState extends State<SplashPage>
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
     _controller.forward();
 
-    //Navigate after 2 seconds
-    // Timer(const Duration(seconds: 2), () {
-    //   if(mounted){
-    //     Navigator.of(context).pushReplacement(
-    //       MaterialPageRoute(
-    //         builder: (context) => const OnBoardingPage(),
-    //       ),
-    //     );
-    //   }
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleNavigation();
+    });
   }
 
-  Future<bool> getOnboardingCompleted() async {
-    debugPrint('🔍 Fetching onboarding status from secure storage...');
-    await Future.delayed(const Duration(seconds: 3));
-    userId = SharedPreferencesHelper.instance.getString(SecureConstant.userId);
-    isSignUp =  SharedPreferencesHelper.instance.getBool(SecureConstant.signUp);
-    debugPrint('✅ Fetching secure storage...userId $userId # isSignUp : $isSignUp');
-    bool? storedValue = SharedPreferencesHelper.instance.getBool(SecureConstant.onboardingCompleted);
-    debugPrint('📥 Raw stored onboarding value: $storedValue');
-    // Convert to bool safely
-    bool result = storedValue ?? false;
-    debugPrint('🔍 Final onboarding bool: $result');
+  Future<void> _handleNavigation() async {
 
-    return result;
+    // splash delay
+    await Future.delayed(const Duration(seconds: 3));
+
+    // 1) onboarding check
+    final onboardingCompleted = SharedPreferencesHelper.instance.getBool(SecureConstant.onboardingCompleted,) ?? false;
+
+    if (!onboardingCompleted) {
+      AppNavigator.goNamed(AppRouterConstant.onBoardingPage);
+      return;
+    }else{
+      if (mounted) {
+        await context.read<SignupCubit>().getCustomerDetails(context);
+      }
+    }
+    // 2) userId check
+    userId = SharedPreferencesHelper.instance.getString(SecureConstant.userId);
+
+    if (userId == null || userId!.trim().isEmpty) {
+      AppNavigator.goNamed(AppRouterConstant.signInPage);
+      return;
+    }
+    // 4) after API response decide navigation
+    String? userName =  SharedPreferencesHelper.instance.getString(SecureConstant.userName);
+    await Future.delayed(const Duration(seconds: 1));
+    final isUserNameValid = userName != null && userName.trim().isNotEmpty;
+    debugPrint("✅ isUserNameValid: $isUserNameValid");
+    if (!isUserNameValid) {
+      AppNavigator.goNamed(AppRouterConstant.aboutMainScreen);
+      return;
+    }
+    AppNavigator.goNamed(AppRouterConstant.advancedDrawer);
   }
 
   @override
@@ -74,53 +88,7 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<bool>(
-        future: getOnboardingCompleted(),
-        builder: (context, snapshot) {
-          if (ConnectionState.waiting == snapshot.connectionState) {
-            return bodyWidgetStack(context);
-          } else if (ConnectionState.done == snapshot.connectionState) {
-            final onboardingCompleted = snapshot.data;
-            debugPrint("✅ Onboarding Completed: $onboardingCompleted");
-            if (onboardingCompleted! == false) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                // Navigator.of(context).pushReplacement(
-                //   MaterialPageRoute(
-                //     builder: (context) => const OnBoardingPage(),
-                //   ),
-                // );
-                context.goNamed(AppRouterConstant.onBoardingPage);
-              });
-            } else if (userId == null || userId == '') {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.goNamed(AppRouterConstant.signInPage);
-                // Navigator.of(context).pushReplacement(
-                //   MaterialPageRoute(builder: (context) => const SignInPage()), //SignInPage
-                // );
-              });
-            } else if (isSignUp == false || isSignUp == null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.goNamed(AppRouterConstant.aboutMainScreen);
-                // Navigator.of(context).pushReplacement(
-                //   MaterialPageRoute(builder: (context) => const AboutMainScreen()),
-                // );
-              });
-            } else {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.goNamed(AppRouterConstant.advancedDrawer);
-                // Navigator.of(context).pushReplacement(
-                //   MaterialPageRoute(
-                //     builder: (context) =>  AdvancedDrawerWidget.getRouteInstance(),  //AdvancedDrawerWidget
-                //   ),
-                // );
-              });
-            }
-          }
-          return bodyWidgetStack(context);
-        },
-      ),
-    );
+    return Scaffold(body: bodyWidgetStack(context));
   }
 
   Stack bodyWidgetStack(BuildContext context) {

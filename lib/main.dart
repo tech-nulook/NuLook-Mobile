@@ -42,7 +42,6 @@ Future<void> main() async {
         BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => ImageCubit()),
         BlocProvider(create: (_) => LocationCubit()),
-        BlocProvider(create: (_) => SignupCubit()),
         BlocProvider(create: (_) => SignInCubit()),
         BlocProvider(create: (_) => VendorsCubit()),
         BlocProvider(create: (_) => HomeCubit()),
@@ -124,20 +123,25 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeInitial>(
-      builder: (context, state) {
-        return MaterialApp.router(
-         // navigatorKey: navigatorKey,
-          title: ConstantData.appName,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: state.themeMode,
-          routerConfig: appRouter,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => SignupCubit()),
+      ],
+      child: BlocBuilder<ThemeCubit, ThemeInitial>(
+        builder: (context, state) {
+          return MaterialApp.router(
+           // navigatorKey: navigatorKey,
+            title: ConstantData.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: state.themeMode,
+            routerConfig: appRouter,
 
-          //home: SplashPage(),
-        );
-      },
+            //home: SplashPage(),
+          );
+        },
+      ),
     );
   }
 }

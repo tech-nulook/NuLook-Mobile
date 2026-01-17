@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nulook_app/common/widgets/network_image_widget.dart';
 import 'package:nulook_app/core/constant/constant_assets.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
 import 'package:nulook_app/features/settings/view/about_us_screen.dart';
 import 'package:nulook_app/features/settings/view/invite_friends_screen.dart';
 import 'package:nulook_app/features/settings/view/privacy_policy_screen.dart';
@@ -303,17 +304,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (shouldLogout == true) {
       await SharedPreferencesHelper.instance.remove(SecureConstant.userId);
-      await SecureStorageHelper.instance.deleteData(
-        SecureConstant.accessTokenKey,
-      );
+      await SharedPreferencesHelper.instance.remove(SecureConstant.userProfileData);
+      await SecureStorageHelper.instance.deleteData(SecureConstant.accessTokenKey);
       await SecureStorageHelper.instance.deleteAll();
       await SharedPreferencesHelper.instance.clear();
       await SharedPreferencesHelper.instance.setBool(SecureConstant.onboardingCompleted, true);
       // Perform logout operation here
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const SignInPage()),
-        );
+        AppNavigator.goNamed(AppRouterConstant.signInPage);
       });
     }
   }

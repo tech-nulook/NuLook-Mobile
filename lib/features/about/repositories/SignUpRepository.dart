@@ -101,7 +101,6 @@ class SignupRepository {
       final response = await ApiServices().get(ApiEndPoints.getCustomerDetails());
       if (response.isSuccess && response.data != null) {
         final customerDetails = CustomerDetails.fromJson(response.data);
-        debugPrint('✅ Customer Details fetched: ${customerDetails.customer!.name}, Email: ${customerDetails.customer!.email}');
         return ApiResponse.success(customerDetails, statusCode: response.statusCode);
       } else {
         return ApiResponse.failure(
