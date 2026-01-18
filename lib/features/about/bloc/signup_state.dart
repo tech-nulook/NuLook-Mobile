@@ -119,3 +119,26 @@ class CustomerError extends SignupState {
   @override
   List<Object> get props => [message];
 }
+
+
+class AnswerLoading extends SignupState {
+  @override
+  // TODO: implement props
+  List<Object?> get props => [];
+}
+
+class AnswerSuccess extends SignupState {
+  final dynamic response; // you can replace with your model
+  const AnswerSuccess(this.response);
+
+  @override
+  List<Object?> get props => [response];
+}
+
+class AnswerFailure extends SignupState {
+  final String message;
+  const AnswerFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

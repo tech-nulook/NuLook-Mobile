@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nulook_app/common/app_snackbar.dart';
+import 'package:nulook_app/core/routers/app_navigator.dart';
+import 'package:nulook_app/core/routers/app_router_constant.dart';
 import '../../../common/widgets/no_data_widget.dart';
 import '../../home/view/advanced_drawer.dart';
 import '../bloc/signup_cubit.dart';
+import '../model/answer_request_model.dart';
 import '../model/question.dart';
 
 class DynamicQuestionScreen extends StatefulWidget {
@@ -22,6 +26,7 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
   late List<Question> questions;
   int currentIndex = 0;
   Map<int, int> selectedOption = {}; // questionId → optionId
+  final List<AnswerItem> answerList = [];
 
   @override
   void initState() {
@@ -31,53 +36,45 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
     });
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return BlocBuilder<SignupCubit, SignupState>(
-  //     builder: (context, state) {
-  //       if (state is SignupLoading) {
-  //         return const Center(child: CircularProgressIndicator());
-  //       } else if (state is AboutQuestionSuccess) {
-  //         questions = state.aboutQuestion.cast<AboutQuestion>();
-  //         return questionWidget(questions);
-  //       } else if (state is AboutQuestionFailure) {
-  //         debugPrint("Error: ${state.errorMessage}");
-  //         return Container();
-  //       }
-  //       return const Center(child: Text("No data found"));
-  //     },
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Abut You",  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+        title: const Text(
+          "Abut You",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         actions: [
           TextButton.icon(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const AdvancedDrawerWidget();
-                  },
-                ),
-              );
+              AppNavigator.go(AppRouterConstant.advancedDrawer);
             },
             icon: const Icon(Icons.check),
-            label: const Text(
-              "Skip",
-            ),
+            label: const Text("Skip"),
           ),
         ],
       ),
-      body: BlocBuilder<SignupCubit, SignupState>(
+      body: BlocConsumer<SignupCubit, SignupState>(
+        buildWhen: (previous, current) => true,
+        listener: (context, state) {
+          if (state is AnswerFailure) {
+            AppSnackBar.showError(context, state.message);
+          } else if (state is AnswerSuccess) {
+            AppSnackBar.showSuccess(context, "Answers submitted successfully!");
+            AppNavigator.go(AppRouterConstant.advancedDrawer);
+          }
+        },
         builder: (context, state) {
           /// Loading
           if (state is SignupLoading) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          /// When submitting answers → show loader
+          if (state is AnswerLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           /// Success
           if (state is AboutQuestionSuccess) {
             final questions = state.aboutQuestion;
@@ -88,8 +85,19 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
                 onRefresh: () => context.read<SignupCubit>().getQuestionAbout(),
               );
             }
-            return questionWidget(questions);
+
+            return Stack(
+              children: [
+                questionWidget(state ,questions),
+                if (state is AnswerLoading)
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            );
           }
+
           /// Failure
           if (state is AboutQuestionFailure) {
             debugPrint('Error: ${state.errorMessage}');
@@ -99,6 +107,7 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
               onRefresh: () => context.read<SignupCubit>().getQuestionAbout(),
             );
           }
+
           /// Initial / Fallback
           return const SizedBox.shrink();
         },
@@ -106,7 +115,7 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
     );
   }
 
-  Widget questionWidget(List<Question> questions) {
+  Widget questionWidget(SignupState state, List<Question> questions) {
     final currentQuestion = questions[currentIndex];
     return Scaffold(
       body: SafeArea(
@@ -116,7 +125,6 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
               const SizedBox(height: 10),
 
               Row(
@@ -148,23 +156,7 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
                   child: Column(
                     spacing: 8,
                     children: [
-                      // LinearProgressIndicator(
-                      //   value: (currentIndex + 1) / aboutQuestion.length,
-                      //   backgroundColor: Colors.grey.shade300,
-                      //   color: Colors.blue,
-                      //   minHeight: 8,
-                      // ),
                       const SizedBox(height: 10),
-                      // Align(
-                      //   alignment: Alignment.centerLeft,
-                      //   child: Text(
-                      //     "Question ${currentIndex + 1} of ${aboutQuestion.length}",
-                      //     style: const TextStyle(
-                      //       fontSize: 16,
-                      //       fontWeight: FontWeight.w600,
-                      //     ),
-                      //   ),
-                      // ),
                       // ========================= OPTIONS ========================
                       Text(
                         currentQuestion.text!,
@@ -174,7 +166,8 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ...currentQuestion.options!.map((o) => GestureDetector(
+                      ...currentQuestion.options!.map(
+                        (o) => GestureDetector(
                           onTap: () {
                             setState(() {
                               selectedOption[currentQuestion.id!] = o.id!;
@@ -232,42 +225,105 @@ class _DynamicQuestionScreenState extends State<DynamicQuestionScreen> {
               ),
 
               Spacer(),
-              // ========================= NEXT BUTTON ====================
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedOption[currentQuestion.id] == null
-                      ? Colors.grey
-                      : Colors.redAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              // ========================= BUTTONS ========================
+              Row(
+                children: [
+                  /// PREVIOUS BUTTON
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: currentIndex == 0
+                            ? Colors.grey
+                            : Colors.black87,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: currentIndex == 0
+                          ? null
+                          : () {
+                              setState(() {
+                                currentIndex--;
+                              });
+                              /// Just for debug (already selected will auto show)
+                              final prevQuestion = questions[currentIndex];
+                              debugPrint(
+                                "⬅️ Previous Question: ${prevQuestion.id}, Selected Option: ${selectedOption[prevQuestion.id]}",
+                              );
+                            },
+                      child: const Text("Previous"),
+                    ),
                   ),
-                ),
-                onPressed: selectedOption[currentQuestion.id] == null
-                    ? null
-                    : () {
-                        if (currentIndex < questions.length - 1) {
-                          setState(() {
-                            currentIndex++;
-                          });
-                        } else {
-                          debugPrint("🎉 Completed");
-                          debugPrint("Selected: $selectedOption");
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AdvancedDrawerWidget.getRouteInstance(),
-                            ),
-                          );
-                        }
-                      },
-                child: Text(
-                  currentIndex == questions.length - 1 ? "Finish" : "Next",
-                ),
+
+                  const SizedBox(width: 12),
+
+                  /// NEXT / FINISH BUTTON OR LOADER
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            selectedOption[currentQuestion.id] == null
+                            ? Colors.grey
+                            : Colors.redAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+
+                      /// Disable button during loading
+                      onPressed: (selectedOption[currentQuestion.id] == null || state is AnswerLoading)
+                          ? null
+                          : () {
+                              final qId = currentQuestion.id!;
+                              final optId = selectedOption[currentQuestion.id]!;
+
+                              addOrUpdateAnswer(qId, optId);
+
+                              if (currentIndex < questions.length - 1) {
+                                setState(() {
+                                  currentIndex++;
+                                });
+                              } else {
+                                context.read<SignupCubit>().submitAnswers(
+                                  answers: answerList,
+                                );
+                              }
+                            },
+
+                      /// Show loader instead of Finish/Next text
+                      child: (state is AnswerLoading)
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(currentIndex == questions.length - 1 ? "Finish" : "Next"),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void addOrUpdateAnswer(int questionId, int optionId) {
+    final index = answerList.indexWhere((e) => e.questionId == questionId);
+    if (index != -1) {
+      /// update existing
+      answerList[index] = AnswerItem(
+        questionId: questionId,
+        optionId: optionId,
+      );
+    } else {
+      /// add new
+      answerList.add(AnswerItem(questionId: questionId, optionId: optionId));
+    }
+    debugPrint("✅ answerList = ${answerList.map((e) => e.toJson()).toList()}");
   }
 }

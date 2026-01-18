@@ -26,6 +26,10 @@ class ApiEndPoints {
   static String getQuestion() {
     return "/customer/questions";
   }
+  ///customers/preferences
+  static String postPreferences() {
+    return "/customers/preferences";
+  }
   static String postFileUpload() {
     return "/file-upload/upload/images/?folder=mobile";
   }

@@ -71,6 +71,34 @@ class SignupRepository {
     }
   }
 
+  Future<ApiResponse<dynamic>> submitAnswersRepository({required Map<String, dynamic> requestBody}) async {
+    try {
+      final response = await ApiServices().post(ApiEndPoints.postPreferences(),body: requestBody);
+
+      debugPrint('answers Repository Response: ${response.data}');
+
+      if (response.isSuccess && response.data != null && response.data != []) {
+
+        final rawList = response.data as List<dynamic>;
+
+        return ApiResponse.success(rawList, statusCode: response.statusCode);
+      } else {
+        return ApiResponse.failure(
+          ApiError(
+            message: response.error?.message ?? 'failed',
+            details: response.error?.details,
+          ),
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      return ApiResponse.failure(
+        ApiError(message: 'Unexpected error: $e'),
+        statusCode: 0,
+      );
+    }
+  }
+
 
   Future<ApiResponse<dynamic>> fileUploadRepository(List<File> files) async {
     try {

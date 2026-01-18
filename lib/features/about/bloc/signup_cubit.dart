@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../common/bloc/user_pref_cubit.dart';
 import '../../../core/storage/secure_storage_constant.dart';
 import '../../../core/storage/shared_preferences_helper.dart';
+import '../model/answer_request_model.dart';
 import '../model/customer_details.dart';
 import '../model/question.dart';
 import '../model/signup.dart';
@@ -97,6 +98,34 @@ class SignupCubit extends Cubit<SignupState> {
       debugPrint('❌ Exception: $e\n$stack');
     }
   }
+
+  Future<void> submitAnswers({required List<AnswerItem> answers}) async {
+    emit(AnswerLoading());
+
+    try {
+      /// ✅ Create request body exactly as required
+      await Future.delayed(Duration(seconds: 10));
+      final requestBody = AnswerRequestModel(answers: answers).toJson();
+      final result = await _signupRepository.submitAnswersRepository(
+        requestBody: requestBody,
+      );
+
+      if (result.isSuccess && result.data != null) {
+        emit(AnswerSuccess(result.data));
+        debugPrint("result.data : ${jsonEncode(result.data)}");
+        debugPrint("✅ Answers submitted successfully");
+      } else {
+        final msg = '${result.error?.message ?? "Something went wrong"}''${"\n"}''${result.error?.details ?? ""}';
+        emit(AnswerFailure(msg));
+        debugPrint('❌ Error: $msg (code: ${result.statusCode})');
+      }
+    } catch (e, stack) {
+      emit(AnswerFailure("Unexpected error: $e"));
+      debugPrint("❌ Exception: $e\n$stack");
+    }
+  }
+
+
   Future<bool> getCustomerDetails(BuildContext context) async {
     emit(CustomerLoading());
     try {
@@ -129,29 +158,6 @@ class SignupCubit extends Cubit<SignupState> {
     }
   }
 
-  // Future<bool> getCustomerDetails() async {
-  //   try {
-  //     emit(SignupLoading());
-  //
-  //     final response = await repo.getCustomerDetails();
-  //
-  //     if (response.success == true) {
-  //       await SharedPreferencesHelper.instance.setObject(
-  //         SecureConstant.userProfileData,
-  //         response.data,
-  //       );
-  //
-  //       emit(SignupLoaded(response.data));
-  //       return true;
-  //     } else {
-  //       emit(SignupError(response.message ?? "Something went wrong"));
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     emit(SignupError(e.toString()));
-  //     return false;
-  //   }
-  // }
 
   //{status: success, customer: {id: 9, name: null, phone_number: 9861962002, email: null, gender: null, dob: null, location: null, picture: null, status: existing, user_id: 147, user_details: {id: 147, username: 9861962002, email: 9861962002, role: customer}}, message: Customer details retrieved successfully}
 }

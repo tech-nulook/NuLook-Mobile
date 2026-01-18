@@ -114,9 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.help_outline,
                 title: 'FAQs',
                 onTap: () {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.push(AppRouterConstant.dynamicQuestionScreen);
-                  });
+                  AppNavigator.pushNamed(AppRouterConstant.dynamicQuestionScreen);
                 },
               ),
               _settingsTile(
